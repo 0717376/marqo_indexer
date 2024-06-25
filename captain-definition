@@ -8,7 +8,7 @@
     "COPY requirements.txt .",
     "RUN pip install --no-cache-dir -r requirements.txt",
     "COPY . .",
-    "CMD [\"python\", \"indexer.py\"]"
+    "CMD [\"python\", \"app.py\"]"
   ],
   "networkMode": "my-project-network"
 }
