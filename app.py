@@ -24,23 +24,47 @@ def clone_repo(repo_url, repo_path, username, password):
     
     print(f"Attempting to clone repository from {repo_url} to {repo_path}")
     
-    git_command = [
-        "git",
-        "clone",
-        "--verbose",
+    # Попытка 1: HTTPS с отключенной проверкой SSL
+    git_command_1 = [
+        "git", "-c", "http.sslVerify=false",
+        "clone", "--verbose",
         f"https://{username}:{password}@{repo_url.split('://')[1]}",
         repo_path
     ]
     
-    try:
-        result = subprocess.run(git_command, capture_output=True, text=True, check=True)
-        print("Git clone output:")
-        print(result.stdout)
-        print("Git clone successful")
-    except subprocess.CalledProcessError as e:
-        print("Git clone failed. Error output:")
-        print(e.stderr)
-        raise Exception(f"Failed to clone repository: {e}")
+    # Попытка 2: Git протокол
+    git_command_2 = [
+        "git",
+        "clone", "--verbose",
+        f"git@{repo_url.split('://')[1].replace('/', ':')}",
+        repo_path
+    ]
+    
+    # Попытка 3: HTTPS с увеличенным таймаутом
+    git_command_3 = [
+        "git", "-c", "http.lowSpeedLimit=1000", "-c", "http.lowSpeedTime=60",
+        "clone", "--verbose",
+        f"https://{username}:{password}@{repo_url.split('://')[1]}",
+        repo_path
+    ]
+    
+    commands = [git_command_1, git_command_2, git_command_3]
+    
+    for i, command in enumerate(commands, 1):
+        try:
+            print(f"Attempt {i}: {' '.join(command)}")
+            result = subprocess.run(command, capture_output=True, text=True, check=True, timeout=120)
+            print("Git clone output:")
+            print(result.stdout)
+            print("Git clone successful")
+            return
+        except subprocess.CalledProcessError as e:
+            print(f"Attempt {i} failed. Error output:")
+            print(e.stderr)
+        except subprocess.TimeoutExpired:
+            print(f"Attempt {i} timed out after 120 seconds")
+    
+    raise Exception("Failed to clone repository after all attempts")
 
 def preprocess_text(text):
     text = re.sub(r'\W', ' ', text)
