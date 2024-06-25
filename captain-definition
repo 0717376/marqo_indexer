@@ -1,14 +1,16 @@
 {
   "schemaVersion": 2,
   "dockerfileLines": [
-    "FROM python:3.10-slim",
-    "RUN apt-get update && apt-get install -y git iputils-ping dnsutils",
-    "RUN apt-get upgrade -y git",
-    "WORKDIR /app",
-    "COPY requirements.txt .",
-    "RUN pip install --no-cache-dir -r requirements.txt",
-    "COPY . .",
-    "CMD [\"python\", \"app.py\"]"
+  "FROM python:3.10-slim",
+  "RUN apt-get update && apt-get install -y git iputils-ping dnsutils curl",
+  "RUN apt-get upgrade -y git",
+  "RUN ping -c 4 gitlab.muravskiy.com || echo 'Ping failed'",
+  "RUN curl -I https://gitlab.muravskiy.com || echo 'Curl failed'",
+  "WORKDIR /app",
+  "COPY requirements.txt .",
+  "RUN pip install --no-cache-dir -r requirements.txt",
+  "COPY . .",
+  "CMD [\"python\", \"indexer.py\"]"
   ],
   "networkMode": "my-project-network"
 }
