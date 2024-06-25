@@ -42,24 +42,26 @@ def clone_repo(repo_url, repo_path, username, password):
     if os.path.exists(repo_path):
         shutil.rmtree(repo_path)
     
-    print("Проверка сетевого подключения...")
-    host = repo_url.split('//')[1].split('/')[0]
-    if not check_network(host):
-        raise Exception(f"Не удалось установить сетевое подключение с {host}")
-
-    print(f"Клонирование репозитория из {repo_url} в {repo_path}")
+    print(f"Attempting to clone repository from {repo_url} to {repo_path}")
+    
+    # Попробуем использовать Git напрямую через subprocess для более подробного вывода
+    git_command = [
+        "git",
+        "clone",
+        "--verbose",
+        f"https://{username}:{password}@{repo_url.split('://')[1]}",
+        repo_path
+    ]
+    
     try:
-        Repo.clone_from(repo_url, repo_path, env={
-            "GIT_ASKPASS": "echo",
-            "GIT_USERNAME": username,
-            "GIT_PASSWORD": password,
-            "GIT_HTTP_LOW_SPEED_LIMIT": "1000",
-            "GIT_HTTP_LOW_SPEED_TIME": "60"
-        })
-        print("Репозиторий успешно клонирован")
-    except Exception as e:
-        print(f"Ошибка при клонировании: {str(e)}")
-        raise
+        result = subprocess.run(git_command, capture_output=True, text=True, check=True)
+        print("Git clone output:")
+        print(result.stdout)
+        print("Git clone successful")
+    except subprocess.CalledProcessError as e:
+        print("Git clone failed. Error output:")
+        print(e.stderr)
+        raise Exception(f"Failed to clone repository: {e}")
 
 if __name__ == '__main__':
     try:
