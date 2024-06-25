@@ -8,7 +8,7 @@
     "COPY requirements.txt .",
     "RUN pip install --no-cache-dir -r requirements.txt",
     "COPY . .",
-    "RUN echo \"172.19.0.2 marqo\" >> /etc/hosts",
+    "RUN echo \"marqo\" >> /etc/hosts",
     "CMD [\"python\", \"app.py\"]"
   ]
 }
