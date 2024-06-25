@@ -7,6 +7,7 @@ import re
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import nltk
+import time
 
 nltk.download('punkt', quiet=True)
 nltk.download('stopwords', quiet=True)
@@ -15,12 +16,31 @@ def get_env_variable(var_name):
     value = os.getenv(var_name)
     if value is None:
         raise EnvironmentError(f"Переменная окружения {var_name} не установлена")
-    return value
+    return value.strip()
 
-def clone_repo(repo_url, repo_path, username, password):
+def clone_repo(repo_url, repo_path, username, password, max_retries=3, delay=5):
     if os.path.exists(repo_path):
         shutil.rmtree(repo_path)
-    Repo.clone_from(repo_url, repo_path, env={"GIT_ASKPASS": "echo", "GIT_USERNAME": username, "GIT_PASSWORD": password})
+    
+    for attempt in range(max_retries):
+        try:
+            print(f"Попытка клонирования репозитория {attempt + 1}/{max_retries}")
+            Repo.clone_from(repo_url, repo_path, env={
+                "GIT_ASKPASS": "echo",
+                "GIT_USERNAME": username,
+                "GIT_PASSWORD": password,
+                "GIT_HTTP_LOW_SPEED_LIMIT": "1000",
+                "GIT_HTTP_LOW_SPEED_TIME": "60"
+            })
+            print("Репозиторий успешно клонирован")
+            return
+        except Exception as e:
+            print(f"Ошибка при клонировании: {str(e)}")
+            if attempt < max_retries - 1:
+                print(f"Повторная попытка через {delay} секунд...")
+                time.sleep(delay)
+            else:
+                raise Exception("Не удалось клонировать репозиторий после нескольких попыток")
 
 def preprocess_text(text):
     text = re.sub(r'\W', ' ', text)
