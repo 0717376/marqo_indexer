@@ -21,7 +21,7 @@ def clone_repo(repo_url, repo_path, username, password):
     if os.path.exists(repo_path):
         shutil.rmtree(repo_path)
     
-    # Увеличиваем время ожидания
+    # Увеличиваем время ожидания и добавляем параметры аутентификации
     git_options = [
         '-c', 'http.lowSpeedLimit=1000',
         '-c', 'http.lowSpeedTime=60',
@@ -32,7 +32,10 @@ def clone_repo(repo_url, repo_path, username, password):
     ]
     
     try:
-        Repo.clone_from(repo_url, repo_path, env={"GIT_TERMINAL_PROMPT": "0"}, multi_options=git_options)
+        Repo.clone_from(repo_url, repo_path, 
+                        env={"GIT_TERMINAL_PROMPT": "0"}, 
+                        multi_options=git_options,
+                        allow_unsafe_options=True)  # Добавлен этот параметр
         print(f"Репозиторий успешно клонирован в {repo_path}")
     except Exception as e:
         print(f"Ошибка при клонировании репозитория: {str(e)}")
