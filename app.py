@@ -20,7 +20,23 @@ def get_env_variable(var_name):
 def clone_repo(repo_url, repo_path, username, password):
     if os.path.exists(repo_path):
         shutil.rmtree(repo_path)
-    Repo.clone_from(repo_url, repo_path, env={"GIT_ASKPASS": "echo", "GIT_USERNAME": username, "GIT_PASSWORD": password})
+    
+    # Увеличиваем время ожидания
+    git_options = [
+        '-c', 'http.lowSpeedLimit=1000',
+        '-c', 'http.lowSpeedTime=60',
+        '-c', 'http.connectTimeout=60',
+        '-c', 'core.askPass=echo',
+        '-c', f'http.{repo_url}.username={username}',
+        '-c', f'http.{repo_url}.password={password}'
+    ]
+    
+    try:
+        Repo.clone_from(repo_url, repo_path, env={"GIT_TERMINAL_PROMPT": "0"}, multi_options=git_options)
+        print(f"Репозиторий успешно клонирован в {repo_path}")
+    except Exception as e:
+        print(f"Ошибка при клонировании репозитория: {str(e)}")
+        raise
 
 def preprocess_text(text):
     text = re.sub(r'\W', ' ', text)
