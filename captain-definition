@@ -9,7 +9,7 @@
     "RUN pip install --no-cache-dir -r requirements.txt",
     "COPY . .",
     "RUN echo \"marqo\" >> /etc/hosts",
-    "RUN echo \"0 0 * * * /usr/local/bin/python /app/indexer.py >> /var/log/cron.log 2>&1\" > /etc/cron.d/indexer-cron",
+    "RUN echo \"0 0 * * * /usr/local/bin/python /app/app.py >> /var/log/cron.log 2>&1\" > /etc/cron.d/indexer-cron",
     "RUN chmod 0644 /etc/cron.d/indexer-cron",
     "RUN crontab /etc/cron.d/indexer-cron",
     "RUN touch /var/log/cron.log",
