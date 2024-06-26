@@ -9,10 +9,16 @@
     "RUN pip install --no-cache-dir -r requirements.txt",
     "COPY . .",
     "RUN echo \"marqo\" >> /etc/hosts",
-    "RUN echo \"0 * * * * /usr/local/bin/python /app/app.py >> /var/log/cron.log 2>&1\" > /etc/cron.d/indexer-cron",
+    "# Создаем скрипт для загрузки переменных окружения",
+    "RUN echo '#!/bin/bash' > /load_env.sh && \\",
+    "    echo 'printenv | sed \"s/^\\(.*\\)$/export \\1/g\" > /env.sh' >> /load_env.sh && \\",
+    "    chmod +x /load_env.sh",
+    "# Модифицируем cron-задачу для использования переменных окружения",
+    "RUN echo \"0 * * * * . /env.sh; /usr/local/bin/python /app/app.py >> /var/log/cron.log 2>&1\" > /etc/cron.d/indexer-cron",
     "RUN chmod 0644 /etc/cron.d/indexer-cron",
     "RUN crontab /etc/cron.d/indexer-cron",
     "RUN touch /var/log/cron.log",
-    "CMD cron && tail -f /var/log/cron.log"
+    "# Запускаем скрипт загрузки переменных окружения перед запуском cron",
+    "CMD /load_env.sh && cron && tail -f /var/log/cron.log"
   ]
 }
