@@ -32,7 +32,14 @@
     "RUN chmod 0644 /etc/cron.d/indexer-cron",
     "RUN crontab /etc/cron.d/indexer-cron",
     "RUN touch /var/log/cron.log",
-    "# Запускаем скрипт загрузки переменных окружения перед запуском cron",
-    "CMD /load_env.sh && cron && tail -f /var/log/cron.log"
+    "# Создаем скрипт для запуска приложения и cron",
+    "RUN echo '#!/bin/bash' > /start.sh && \\",
+    "    echo '/load_env.sh' >> /start.sh && \\",
+    "    echo 'python /app/app.py &' >> /start.sh && \\",
+    "    echo 'cron' >> /start.sh && \\",
+    "    echo 'tail -f /var/log/cron.log' >> /start.sh && \\",
+    "    chmod +x /start.sh",
+    "# Запускаем скрипт для старта приложения и cron",
+    "CMD [\"/start.sh\"]"
   ]
 }
